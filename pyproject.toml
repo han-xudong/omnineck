@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnineck"
+version = "0.1.0"
+description = "Omni Neck project"
+authors = [
+    {name = "Xudong Han", email = "12231112@mail.sustech.edu.cn"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "grpcio-tools>=1.60.0",
+    "jupyter==1.1.1",
+    "lightning==2.1.2",
+    "markdown-it-py==3.0.0",
+    "matplotlib==3.10.0",
+    "numpy==2.2.0",
+    "onnx==1.17.0",
+    "onnxruntime==1.21.0",
+    "opencv-contrib-python==4.10.0.84",
+    "opencv-python==4.10.0.84",
+    "pandas==2.2.3",
+    "plotly==5.24.1",
+    "protobuf==5.29.1",
+    "pynetft==1.0.2",
+    "pynput==1.8.1",
+    "pyyaml==6.0.2",
+    "scipy==1.14.1",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "tqdm==4.66.4",
+    "trimesh==4.6.8",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/han-xudong/omnineck"
+"Bug Tracker" = "https://github.com/han-xudong/omnineck/issues"
+
+[tool.setuptools]
+packages = ["omnineck"]
+
+[tool.black]
+line-length = 110
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line-length = 110
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

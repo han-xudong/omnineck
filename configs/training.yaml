@@ -1,0 +1,6 @@
+x_dim: [6]
+y_dim: [6, 1800]
+h1_dim: [100, 1000]
+h2_dim: [100, 1000]
+freeze_dim: []
+data_folder: "./data/sim/"

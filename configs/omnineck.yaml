@@ -1,0 +1,6 @@
+host: "127.0.0.1"
+port: 6666
+
+camera_params_path: "./configs/camera/cam-001.yaml"
+
+model_path: "./models/NeckNet.onnx"
