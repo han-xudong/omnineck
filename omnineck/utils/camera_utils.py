@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
+import subprocess
+import re
+from collections import defaultdict
 import cv2
 import numpy as np
+
 
 # Set the jpeg parameters
 JPEG_PARAMS = [cv2.IMWRITE_JPEG_QUALITY, 50]
@@ -24,7 +28,7 @@ def img_encode(img: np.ndarray) -> bytes:
     return img_encoded.tobytes()
 
 
-def calibrate_camera(images, chess_size=(7, 7), square_size=0.025):
+def calibrate_chessboard(images, chess_size=(7, 7), square_size=0.025):
     """
     Find chessboard corners in the images for camera calibration.
 
@@ -64,3 +68,59 @@ def calibrate_camera(images, chess_size=(7, 7), square_size=0.025):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, gray.shape[::-1], None, None)
 
     return mtx, dist, rvecs, tvecs
+
+
+def get_camera_capabilities(device="/dev/video0") -> dict:
+    """
+    Query camera supported pixel formats, resolutions and fps using v4l2-ctl.
+
+    Returns:
+        dict:
+        {
+            "MJPG": {
+                (640, 480): [30, 60],
+                (1280, 720): [30]
+            },
+            "YUYV": {
+                (640, 480): [30]
+            }
+        }
+    """
+    cmd = ["v4l2-ctl", "--device", device, "--list-formats-ext"]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise RuntimeError(f"v4l2-ctl failed:\n{result.stderr}")
+
+    output = result.stdout.splitlines()
+
+    caps = defaultdict(lambda: defaultdict(list))
+
+    current_fmt = None
+    current_size = None
+
+    for line in output:
+        line = line.strip()
+
+        # Pixel Format: 'MJPG'
+        m = re.match(r"Pixel Format:\s+'(\w+)'", line)
+        if m:
+            current_fmt = m.group(1)
+            continue
+
+        # Size: Discrete 1280x720
+        m = re.match(r"Size:\s+Discrete\s+(\d+)x(\d+)", line)
+        if m and current_fmt:
+            w, h = map(int, m.groups())
+            current_size = (w, h)
+            continue
+
+        # Interval: Discrete 0.033s (30.000 fps)
+        m = re.search(r"\(([\d.]+)\s+fps\)", line)
+        if m and current_fmt and current_size:
+            fps = int(float(m.group(1)))
+            if fps not in caps[current_fmt][current_size]:
+                caps[current_fmt][current_size].append(fps)
+
+    # convert defaultdict → dict
+    return {fmt: dict(res) for fmt, res in caps.items()}

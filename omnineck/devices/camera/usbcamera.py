@@ -6,9 +6,10 @@ import time
 import cv2
 import yaml
 import numpy as np
-from typing import Optional, Tuple
+from typing import Tuple
 from collections import deque
 from scipy.spatial.transform import Rotation as spR
+from omnineck.configs.deploy import CameraConfig, DetectorConfig
 
 
 class UsbCamera:
@@ -21,23 +22,23 @@ class UsbCamera:
     
     def __init__(
         self,
-        camera_params: dict,
-        detector_params: Optional[dict] = None,
+        camera_cfg: CameraConfig,
+        detector_cfg: DetectorConfig = DetectorConfig(),
     ) -> None:
         """
         Initialize the UsbCamera.
 
         Args:
-            camera_params (dict): The camera parameters.
-            detector_params (dict, optional): The detector parameters. Defaults to None.
+            camera_cfg (CameraConfig): The camera configuration.
+            detector_cfg (Optional[DetectorConfig]): The detector configuration.
         """
 
         # Set the camera parameters
-        self.id = int(camera_params["id"])
-        self.width = int(camera_params["width"])
-        self.height = int(camera_params["height"])
-        self.mtx = np.array(camera_params["mtx"])
-        self.dist = np.array(camera_params["dist"])
+        self.id = int(camera_cfg.id)
+        self.width = int(camera_cfg.width)
+        self.height = int(camera_cfg.height)
+        self.mtx = np.array(camera_cfg.mtx)
+        self.dist = np.array(camera_cfg.dist)
 
         # Set the camera parameters
         self.camera = cv2.VideoCapture(self.id)
@@ -54,23 +55,24 @@ class UsbCamera:
         # Set the detector parameters
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)
         aruco_detector_params = cv2.aruco.DetectorParameters()
-        if not detector_params:
-            for key in detector_params:
-                aruco_detector_params.__setattr__(key, detector_params[key])
+        if detector_cfg is not None:
+            for v in vars(detector_cfg):
+                if hasattr(aruco_detector_params, v):
+                    setattr(aruco_detector_params, v, getattr(detector_cfg, v))
         self.detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_detector_params)
         self.aruco_estimate_params = cv2.aruco.EstimateParameters()
         self.aruco_estimate_params.solvePnPMethod = cv2.SOLVEPNP_IPPE_SQUARE
 
         # Set the marker size
-        self.marker_size = camera_params["marker_size"]
+        self.marker_size = camera_cfg.marker_size
         print(f"Camera {self.id} Marker size: {self.marker_size}")
         
         # Set the initial pose
         self.init_pose = np.zeros(6)
 
         # Set the translation and rotation from marker frame to global frame
-        self.transfer_tvec = np.array(camera_params["marker2global"]["translation"])
-        self.transfer_rmat = np.array(camera_params["marker2global"]["rotation"])
+        self.transfer_tvec = np.array(camera_cfg.transfer_tvec)
+        self.transfer_rmat = np.array(camera_cfg.transfer_rmat)
         
         # Set the initial pose
         self.init_pose = np.zeros(6)
@@ -78,8 +80,8 @@ class UsbCamera:
         self.pose = np.zeros(6)
 
         # Set the filter parameters
-        self.filter_on = camera_params["filter_on"]
-        self.filter_frame = camera_params["filter_frame"]
+        self.filter_on = camera_cfg.filter_on
+        self.filter_frame = camera_cfg.filter_frame
         print(f"Pose Filter: {self.filter_on}")
         if self.filter_on:
             print(f"Filter frame: {self.filter_frame}")
@@ -91,7 +93,7 @@ class UsbCamera:
         self.sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
 
         # Init pose
-        print(f"Calculating the initial pose of {self.name} ...")
+        print(f"Calculating the initial pose of Camera {self.id} ...")
         self.init_pose = self._calculateInitPose()
         self.init_tvec = self.init_pose[:, :3]
         self.init_rvec = self.init_pose[:, 3:]
@@ -255,11 +257,11 @@ class UsbCamera:
         """
 
         # Read the image from the camera
-        try:
-            img = cv2.imdecode(self.camera.subscribeMessage(), cv2.IMREAD_COLOR)
-        except ValueError:
-            print("\033[31mCannot read the image from the camera.\033[0m")
-            sys.exit()
+        ret, img = self.camera.read()
+        # Check if the image is read
+        if not ret:
+            ValueError("Cannot read the image from the camera.")
+        # Return the image
         return img
 
     def readImageAndPose(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -474,15 +476,9 @@ if __name__ == "__main__":
     # Parse the arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--name",
-        type=str,
-        default="Camera",
-        help="The name of the camera.",
-    )
-    parser.add_argument(
         "--params_path",
         type=str,
-        default="./configs/camera/maixcam-9674.yaml",
+        default="./configs/camera_01.yaml",
         help="The path of the camera parameters.",
     )
     parser.add_argument(
@@ -495,20 +491,18 @@ if __name__ == "__main__":
     # Read the camera parameters
     with open(args.params_path, "r") as f:
         camera_params = yaml.load(f.read(), Loader=yaml.Loader)
-
-    with open("./configs/detector.yaml", "r") as f:
-        detector_params = yaml.load(f.read(), Loader=yaml.Loader)
+    camera_cfg = CameraConfig(**camera_params)
 
     try:
         # Create a camera
         camera = UsbCamera(
-            camera_params=camera_params,
-            detector_params=detector_params,
+            camera_cfg=camera_cfg,
         )
         show_img = args.show_img
         
         camera_id = camera.id
-
+        frame_count = 0
+        start_time = time.time()
         # Start the loop
         while True:
             # Get the pose and image from the camera

@@ -1,78 +1,95 @@
-<div align="center">
-<h1>Anchoring Morphological Representations Unlocks Latent Proprioception in Soft Robots</h1>
-<a href="https://hanxudong.cc">Xudong Han</a><sup>1</sup>, <a href="https://gabriel-ning.github.io">Ning Guo</a><sup>2</sup>, <a href="">Ronghan Xu</a><sup>1</sup>, <a href="https://maindl.ancorasir.com">Fang Wan</a><sup>1</sup>, <a href="https://bionicdl.ancorasir.com">Chaoyang Song</a><sup>1</sup>
-</br>
-<sup>1</sup> Southern University of Science and Technology, <sup>2</sup> Shanghai Jiao Tong University
-</br></br>
-<img src="./assets/img/teaser.gif" width="80%">
-</div>
+<h1 align="center">Omni-Neck</h1>
 
-## Overview
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white" /></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-≥2.5.0-ee4c2c?logo=pytorch&logoColor=white" /></a>
+  <a href="https://www.3ds.com/products/simulia/abaqus/"><img src="https://img.shields.io/badge/Abaqus-≥2022-005386?logo=dassaultsystemes&logoColor=white" /></a>
+  <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.10.0-5c3ee8?logo=opencv&logoColor=white" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-black?logo=open-source-initiative&logoColor=white" /></a>
+  <br/>
+  <a href="./docs/training.ipynb">⚡Training Guide</a> |
+  <a href="https://sites.google.com/view/prosoro-hardware">🤖Assembly Guide</a> |
+  <a href="https://github.com/han-xudong/omnineck-viewer">🫧Data Viewer</a>
+</p>
+<p align="center">
+  <img src="docs/assets/banner.jpg" alt="OmniNeck Banner" width="700"/>
+</p>
 
-**Proprioceptive Soft Robot (ProSoRo)** is a proprioceptive soft robotic system that utilizes miniature vision to track an internal marker within the robot's deformable structure. By monitoring the motion of this single point relative to a fixed boundary, we capture critical information about the robot's overall deformation state, significantly reducing sensing complexity. To harness the full potential of this anchor-based approach, we developed a multi-modal proprioception learning framework utilizing a **multi-modal variational autoencoder (MVAE)** to align motion, force, and shape of ProSoRos into a unified representation based on an anchored observation, involving three stages:
+Omni-Neck is a soft robotic module that mimics the flexibility and dexterity of biological necks. It is designed to provide a wide range of motion and sensing capabilities, making it suitable for various applications in robotics, including manipulation, exploration, and human-robot interaction. Omni-Neck is part of the [Proprioceptive Soft Robot (ProSoRo)](https://prosoro.github.io) family.
 
-![Framework](./assets/img/framework.jpg)
+## 📦 Installation
 
-- **Material identification**: Recognizing the impracticality of collecting extensive physical datasets for soft robots, we leveraged finite element analysis (FEA) simulations to generate high-quality training data. We begin by measuring the material's stress-strain curve through the standard uniaxial tension test to obtain the best-fitted material model. Then, we apply an evolution strategy to optimize the material parameters by comparing the calculated force from finite element analysis (FEA) and the measured ground truth from a physical experiment under the same motion of the anchor point. More details can be found in [EVOMIA](https://github.com/ancorasir/EVOMIA).
-- **Latent proprioceptive learning**: The simulation dataset was generated using the optimized material parameters and provided motion in $[D_x, D_y, D_z, R_x, R_y, R_z]^\mathrm{T}$, force in $[F_x, F_y, F_z, T_x, T_y, T_z]^\mathrm{T}$, and shape in node displacements of $[n_x, n_y, n_z]_{3n}^\mathrm{T}$ as the training inputs. To learn these modalities for explicit proprioception, we developed a multi-modal variational autoencoder (MVAE) to encode the ProSoRo's proprioception via latent codes. Three modal latent codes are generated through three specific motion, force, and shape encoders, and the shared code contains fused information from all three modalities by minimizing the errors among the three codes. As a result, the shared codes provide explicit proprioception in the latent space, denoted as latent proprioception, which can be used to reconstruct the three modalities using specific decoders for applied interactions.
-- **Cross-modal inference**: In real-world deployments, the shape modality, for example, can be estimated from latent proprioception instead of direct measurement, which is usually impossible to achieve in real-time interactions in robotics. At this stage, we visually capture the ProSoRo’s anchor point as MVAE's input to estimate the force and shape modalities based on the latent knowledge learned from simulation data. We found that our proposed latent proprioception framework to be a versatile solution in soft robotic interactions.
-
-Within the latent code, we identify **key morphing primitives** that correspond to fundamental deformation modes. By systematically varying these latent components, we can generate a spectrum of deformation behaviors, offering a novel perspective on soft robotic systems' intrinsic dimensionality and controllability. This understanding enhances the interpretability of the latent code and facilitates the development of more sophisticated control strategies and advanced human-robot interfaces.
-
-![Latent Code](./assets/img/latent_code.jpg)
-
-## Installation
-
-This repository contains the training and testing code for ProSoRo, which are tested on both Ubuntu 22.04 and Windows 11. We recommend creating a new virtual environment, such as `conda`, to install the dependencies:
+Clone this repository:
 
 ```bash
-conda create -n prosoro python=3.10
-conda activate prosoro
+git clone https://github.com/han-xudong/omnineck.git
+cd omnineck
 ```
 
-Then, download the latest release and install the dependencies:
+We use `uv` to manage Python dependencies. See [uv documentation](https://docs.astral.sh/uv/getting-started/installation/) for installation instructions. Once `uv` is installed, run the following command to set up the environment:
 
 ```bash
-git clone https://github.com/ancorasir/ProSoRo.git
-cd ProSoRo
-pip install -r requirements.txt
+uv sync
+uv pip install -e .
 ```
 
-And intall `pytorch>=2.1`:
+## ⚡ Training
+
+Before training the model, you need to prepare the dataset according to the [training guide](./docs/training.ipynb).
+
+Then, run the following command to train the model:
 
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+uv run python scripts/train.py <options>
 ```
 
-If you want to generate the simulation data, it's necessary to have `Abaqus>=2022` installed on your platform.
+There are several configurable options for training:
 
-## Quick Start
+| Options                | Description                                      | Type  | Default             |
+| ---------------------- | ------------------------------------------------ | ----- | ------------------- |
+| --batch-size           | Batch size for training.                         | int   | 128                 |
+| --lr                   | Learning rate for the optimizer.                 | float | 1e-5                |
+| --max-epochs           | Maximum number of training epochs.               | int   | 2000                |
+| --save-dir             | Directory to save training logs and checkpoints. | str   | lightning_logs      |
+| --data.dataset-path    | Path to the dataset directory.                   | str   | ./data/omnineck/sim |
+| --data.num-workers     | Number of workers for data loading.              | int   | 4                   |
+| --data.pin-memory      | Whether to pin memory during data loading.       | bool  | False               |
+| --data.train-val-split | Train-validation split ratios.                   | tuple | 0.875 0.125         |
+| --model.name           | Model name                                       | str   | NeckNet             |
+| --model.x-dim          | Input dimension                                  | tuple | 6                   |
+| --model.y-dim          | Output dimension                                 | tuple | 6 1800              |
+| --model.h1-dim         | Hidden layer 1 dimension                         | tuple | 128 1024            |
+| --model.h2-dim         | Hidden layer 2 dimension                         | tuple | 128 1024            |
 
-Here we provide a [guide](guide.ipynb) to train and test ProSoRo. You can run the notebook in your local environment. Briefly, the guideline includes the following parts:
+## 🤖 Hardware
 
-1. **Simulation Template**: Generate an `.inp` file in Abaqus/CAE as the template.
-2. **Pose Data**: Generate a list of poses which are the boundary conditions of `.inp` files.
-3. **Batch Simulation**: Generate and submit `.inp` files in batch and read the results.
-4. **Data Preprocessing**: Preprocess the simulation results and generate the training data.
-5. **Training**: Train a MVAE model with the training data.
-6. **Testing**: Test the trained model on the testing data.
+The hardware mainly consists of a camera, a soft struture and several 3D-printed parts. The camera is used for capturing images, while the controller board publishes the images through TCP protocol. The soft struture is made of polyurethane (PU). 3D-printed parts are used to assemble the camera, controller board, and power board together.
 
-It's also available to use the modules provided in `modules/` and test on a real ProSoRo hardware. More details can be found in the [guide](guide.ipynb).
-
-## Hardware
-
-ProSoRo hardware consists of a metastructure, a camera, LED lights and several 3D-printed parts. There are six types of ProSoRos, including cylinder, octagonal prism, quadrangular prism, origami, omni-neck, and dome. All ProSoRos are with similar structure and based on the same vision-based proprioception method. More building details can be found in [Hardware Guide](https://sites.google.com/view/prosoro-hardware).
-
-![Hardware](./assets/img/hardware.jpg)
+<p align="center">
+  <img src="docs/assets/assembly.jpg" alt="Omni-Neck Assembly" width="400" />
+</p>
 
 But it's not necessary to have the hardware if you just want to run the code. It's available to train and test in the simulation environment.
 
-## License
+## 🚀 Deployment
 
-This repository is released under the [MIT License](./LICENSE).
+After connecting the Omni-Neck to the computer and modifying the configuration, you can deploy it by running the following command:
 
-## Acknowledgements
+```bash
+uv run python scripts/deploy.py
+```
 
-- **Pytorch Lightning**: We use [Pytorch Lightning](https://github.com/Lightning-AI/pytorch-lightning) by [Lightning AI](https://lightning.ai/) as the training framework, and started from the [official docs](https://lightning.ai/docs/pytorch/stable/).
-- **Abaqus**: We use [Abaqus 2022](https://www.3ds.com/products-services/simulia/products/abaqus/) as the simulation software, and build up the simulation pipeline and python scripts.
-- **Plotly**: We use [Plotly](https://plotly.com) to visualize the results of the model, and build up a interface for ProSoRo using [Dash](https://dash.plotly.com).
+Various configuration options are available:
+
+| Options       | Description                                 | Type | Default                          |
+| ------------- | ------------------------------------------- | ---- | -------------------------------- |
+| --host        | Host address for the publisher.             | str  | 127.0.0.1                        |
+| --port        | Port number for the publisher.              | int  | 6666                             |
+| --camera-yaml | Path to the camera configuration YAML file. | str  | ./configs/camera/camera_001.yaml |
+| --onnx-path   | Path to the ONNX model file.                | str  | ./models/NeckNet.onnx            |
+
+All data can be visualized through the [OmniNeck Viewer](https://github.com/han-xudong/omnineck-viewer).
+
+## 📄 License
+
+This repository is released under the [MIT License](LICENSE).

@@ -9,7 +9,7 @@ The model is implemented in PyTorch and exported to ONNX format for inference.
 
 Example usage:
 ```bash
-python necknet.py --model_path ./models/NeckNet.onnx
+python necknet.py --onnx_path ./models/NeckNet.onnx
 ```
 
 For more information, please refer to https://github.com/han-xudong/omnineck
@@ -22,27 +22,27 @@ import onnxruntime
 import numpy as np
 
 class NeckNet:
-    def __init__(self, model_path) -> None:
+    def __init__(self, onnx_path) -> None:
         """NeckNet initialization.
 
         Args:
-            model_path: The path of the model.
+            onnx_path: The path of the model.
         """
         
         # Set the name and model path
         self.name = "NeckNet"
-        self.model_path = model_path
-        if not self.model_path.endswith(".onnx"):
+        self.onnx_path = onnx_path
+        if not self.onnx_path.endswith(".onnx"):
             raise ValueError("\033[31mThe model path must end with .onnx\033[0m")
-        if not os.path.exists(self.model_path):
+        if not os.path.exists(self.onnx_path):
             raise ValueError("\033[31mThe model path does not exist\033[0m")
         
         # Create a ONNX runtime session
-        self.session = onnxruntime.InferenceSession(self.model_path)
+        self.session = onnxruntime.InferenceSession(self.onnx_path)
         
         # Print the initialization message
         print("{:-^80}".format(f" {self.name} Initialization "))
-        print("Model Path:", self.model_path)
+        print("Model Path:", self.onnx_path)
         print("Input:", [f"{input.name} ({input.shape[0]}, {input.shape[1]})" for input in self.session.get_inputs()])
         print("Output:", [f"{output.name} ({output.shape[0]}, {output.shape[1]})" for output in self.session.get_outputs()])
         print("Model Initialization Done.")
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         help="The name of the model.",
     )
     parser.add_argument(
-        "--model_path",
+        "--onnx_path",
         type=str,
         default="./models/NeckNet.onnx",
         help="The path of the model.",
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # Initialize the NeckNet
-    neck_net = NeckNet(args.model_path)
+    neck_net = NeckNet(args.onnx_path)
     
     # Given a random motion and infer the force and node
     print("Given a random motion and infer the force and node...")

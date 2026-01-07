@@ -32,7 +32,7 @@ import sys
 import os
 import cv2
 import yaml
-from omnineck.utils.camera_utils import calibrate_camera
+from omnineck.utils.camera_utils import calibrate_chessboard
 
 
 def main(id: int, width: int, height: int) -> None:
@@ -128,7 +128,7 @@ def main(id: int, width: int, height: int) -> None:
 
         # Find chessboard corners in the images
         print("Finding chessboard corners...")
-        mtx, dist, rvecs, tvecs = calibrate_camera(images, chess_size=chess_size, square_size=square_size)
+        mtx, dist, rvecs, tvecs = calibrate_chessboard(images, chess_size=chess_size, square_size=square_size)
 
         # Print the calibration results
         print("Camera matrix:")

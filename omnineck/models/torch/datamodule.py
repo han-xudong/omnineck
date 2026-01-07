@@ -68,7 +68,7 @@ class NeckDataModule(LightningDataModule):
 
     def __init__(
         self,
-        data_folder: str,
+        dataset_path: str,
         batch_size: int = 128,
         num_workers: int = 4,
         pin_memory: bool = False,
@@ -88,7 +88,7 @@ class NeckDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
-        self.data_folder = data_folder
+        self.dataset_path = dataset_path
 
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
@@ -115,7 +115,7 @@ class NeckDataModule(LightningDataModule):
 
         if not self.data_train or not self.data_val or not self.data_test:
 
-            data_path = self.data_folder + "train_data.npy"
+            data_path = os.path.join(self.dataset_path, "train_data.npy")
             if not os.path.exists(data_path):
                 raise ValueError("Data file does not exist.")
 

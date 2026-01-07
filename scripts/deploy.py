@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Run OmniNeck
+Deploy OmniNeck
 
 This script is to run the OmniNeck, capturing omni-neck's deformation and
 inferring the force and node displacement using the trained model.
@@ -9,19 +9,28 @@ inferring the force and node displacement using the trained model.
 Example usage:
 
 ```bash
-python run_omnineck.py
+uv run python deploy.py
 ```
 
-Note that before running this script, please make sure to modify the configuration
-file `configs/omnineck.yaml`.
+Various configuration options are available:
+╭───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+| Options       | Description                                   | Type   | Default                          |
+|---------------|-----------------------------------------------|--------|----------------------------------|
+| --host        | Host address for the publisher.               | str    | 127.0.0.1                        |
+| --port        | Port number for the publisher.                | int    | 6666                             |
+| --camera-yaml | Path to the camera configuration YAML file.   | str    | ./configs/camera/camera_001.yaml |
+| --onnx-path   | Path to the ONNX model file.                  | str    | ./models/NeckNet.onnx            |
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 """
 
 import time
+import tyro
 import cv2
 import yaml
 from omnineck.devices import UsbCamera
 from omnineck.modules import NeckPublisher
 from omnineck.models import NeckNetRuntime
+from omnineck.configs.deploy import DeployConfig, CameraConfig
 
 
 class OmniNeck:
@@ -34,39 +43,27 @@ class OmniNeck:
         neck_publisher (NeckPublisher): The publisher to send data.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, cfg: DeployConfig) -> None:
         """
         Initialize the OmniNeck.
+        
+        Args:
+            cfg (DeployConfig): The deployment configuration.
         """
         
-        # Load the omni-neck parameters
-        with open("./configs/omnineck.yaml", "r") as f:
-            omnineck_params = yaml.load(f.read(), Loader=yaml.Loader)
-
-        # Load the camera parameters
-        with open(omnineck_params["camera_params_path"], "r") as f:
-            camera_params = yaml.load(f.read(), Loader=yaml.Loader)
-
-        # Load the detector parameters
-        with open("./configs/detector.yaml", "r") as f:
-            detector_params = yaml.load(f.read(), Loader=yaml.Loader)
+        with open(cfg.camera_yaml, "r") as f:
+            camera_params_dict = yaml.safe_load(f)
+            
+        camera_cfg = CameraConfig(**camera_params_dict)
 
         # Create a camera
-        self.camera = UsbCamera(
-            camera_params=camera_params,
-            detector_params=detector_params,
-        )
+        self.camera = UsbCamera(camera_cfg)
 
         # Create a NeckNet model
-        self.neck_net = NeckNetRuntime(
-            model_path=omnineck_params["model_path"],
-        )
+        self.neck_net = NeckNetRuntime(cfg.onnx_path)
 
         # Create a neck publisher
-        self.neck_publisher = NeckPublisher(
-            host=omnineck_params["host"],
-            port=omnineck_params["port"],
-        )
+        self.neck_publisher = NeckPublisher(cfg.host, cfg.port)
 
     def release(self) -> None:
         """
@@ -126,7 +123,7 @@ class OmniNeck:
 
 
 if __name__ == "__main__":
-    # Create a OmniNeck instance
-    omnineck = OmniNeck()
-    # Run the OmniNeck
+    cfg = tyro.cli(DeployConfig)
+
+    omnineck = OmniNeck(cfg)
     omnineck.run()

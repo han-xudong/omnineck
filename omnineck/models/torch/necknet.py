@@ -16,11 +16,10 @@ class NeckNet(LightningModule):
 
     def __init__(
         self,
-        x_dim: list,
-        y_dim: list,
-        h1_dim: list,
-        h2_dim: list,
-        freeze_dim: list = [],
+        x_dim: Tuple[int, ...],
+        y_dim: Tuple[int, ...],
+        h1_dim: Tuple[int, ...],
+        h2_dim: Tuple[int, ...],
         lr: float = 1e-4,
         **kwargs,
     ) -> None:
@@ -35,17 +34,15 @@ class NeckNet(LightningModule):
         """
 
         # Call the super constructor
-        super().__init__()
+        super().__init__(**kwargs)
 
         # Set the model parameters
-
         self.save_hyperparameters()
         self.lr = lr
         self.x_dim = x_dim
         self.y_dim = y_dim
         self.h1_dim = h1_dim
         self.h2_dim = h2_dim
-        self.freeze_dim = freeze_dim
         
 
         # Define the model architecture
@@ -61,11 +58,6 @@ class NeckNet(LightningModule):
                     nn.Linear(self.h2_dim[i], self.y_dim[i]),
                 ),
             )
-            
-        # Freeze the branches if specified
-        for i in range(len(self.y_dim)):
-            if i in freeze_dim:
-                self.freeze_branch(i)
 
     @staticmethod
     def pretrained_weights_available():
@@ -88,28 +80,6 @@ class NeckNet(LightningModule):
         """
 
         pass
-    
-    def freeze_branch(self, branch_index: int) -> None:
-        """Freeze the branch of the model.
-
-        Args:
-            branch_index: the index of the branch to freeze.
-        """
-
-        # Freeze the branch
-        for param in getattr(self, f"estimator_{branch_index}").parameters():
-            param.requires_grad = False
-            
-    def unfreeze_branch(self, branch_index: int) -> None:
-        """Unfreeze the branch of the model.
-
-        Args:
-            branch_index: the index of the branch to unfreeze.
-        """
-
-        # Unfreeze the branch
-        for param in getattr(self, f"estimator_{branch_index}").parameters():
-            param.requires_grad = True
 
     def forward(self, x: Tensor) -> List[Tensor]:
         """Forward pass of the model.
@@ -200,8 +170,6 @@ class NeckNet(LightningModule):
         # Calculate the reconstruction loss
         loss_list = []
         for i in range(len(self.y_dim)):
-            if i in self.freeze_dim:
-                continue
             y_i = data_list[i + 1]
             y_hat_i = y_hat_list[i]
             loss = F.mse_loss(y_hat_i, y_i)
@@ -292,10 +260,6 @@ class NeckNet(LightningModule):
         
         # Iterate over each output branch (estimator)
         for i in range(len(self.y_dim)):
-            # Check if this estimator's parameters should be frozen
-            if i in self.freeze_dim:
-                continue
-            
             # Add the parameters of the estimator to the optimizer's parameter list
             params += list(getattr(self, f"estimator_{i}").parameters())
         
