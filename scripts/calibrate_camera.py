@@ -55,6 +55,7 @@ def main(id: int, width: int, height: int) -> None:
     camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    camera.set(cv2.CAP_PROP_FPS, 30)
 
     # Print camera information
     print(f"Camera id: {id}")

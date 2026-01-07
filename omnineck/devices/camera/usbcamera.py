@@ -45,9 +45,7 @@ class UsbCamera:
         self.camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-        self.camera.set(
-            cv2.CAP_PROP_AUTO_EXPOSURE, 0.75
-        )  # fixed exposure 0.25, automatic 0.75
+        self.camera.set(cv2.CAP_PROP_FPS, camera_cfg.fps)
         print(f"Camera {self.id} Resolution: {self.width}x{self.height}")
         print(f"Camera {self.id} matrix:\n{self.mtx}")
         print(f"Camera {self.id} distortion:\n{self.dist}")
