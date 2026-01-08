@@ -9,7 +9,7 @@ inferring the force and node displacement using the trained model.
 Example usage:
 
 ```bash
-uv run python deploy.py
+python deploy.py
 ```
 
 Various configuration options are available:
@@ -18,7 +18,7 @@ Various configuration options are available:
 |---------------|-----------------------------------------------|--------|----------------------------------|
 | --host        | Host address for the publisher.               | str    | 127.0.0.1                        |
 | --port        | Port number for the publisher.                | int    | 6666                             |
-| --camera-yaml | Path to the camera configuration YAML file.   | str    | ./configs/camera/camera_001.yaml |
+| --camera-yaml | Path to the camera configuration YAML file.   | str    | ./configs/camera_01.yaml         |
 | --onnx-path   | Path to the ONNX model file.                  | str    | ./models/NeckNet.onnx            |
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 """
@@ -46,14 +46,14 @@ class OmniNeck:
     def __init__(self, cfg: DeployConfig) -> None:
         """
         Initialize the OmniNeck.
-        
+
         Args:
             cfg (DeployConfig): The deployment configuration.
         """
-        
+
         with open(cfg.camera_yaml, "r") as f:
             camera_params_dict = yaml.safe_load(f)
-            
+
         camera_cfg = CameraConfig(**camera_params_dict)
 
         # Create a camera

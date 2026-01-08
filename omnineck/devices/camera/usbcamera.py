@@ -1,7 +1,42 @@
 #!/usr/bin/env python
 
+"""
+USB Camera Device Module
+
+This module provides the UsbCamera class to interface with a USB camera, capture images, 
+and estimate poses using ArUco markers.
+
+Usage:
+
+First, import the UsbCamera class and create an instance:
+
+```python
+from omnineck.devices import UsbCamera
+camera = UsbCamera(camera_cfg, detector_cfg)
+```
+
+where `camera_cfg` is an instance of `CameraConfig` containing camera parameters (more details
+in `omnineck/configs/camera.py`), and `detector_cfg` is an optional instance of `DetectorConfig`
+for ArUco marker detection parameters (more details in `omnineck/configs/detector.py`).
+
+To read images and poses from the camera:
+
+```python
+pose, img = camera.readImageAndPose()
+```
+
+The `pose` is a numpy array of shape `[n, 6]`, where each row represents the pose of a detected
+marker in the format `[tx, ty, tz, rx, ry, rz]`. The `img` is the captured image with detected
+markers drawn on it.
+
+To release the camera resources:
+
+```python
+camera.release()
+```
+"""
+
 import argparse
-import sys
 import time
 import cv2
 import yaml
@@ -16,10 +51,9 @@ class UsbCamera:
     """
     UsbCamera class.
 
-    This class is used to read the image from the USB camera, 
-    and calculate the pose using the ArUco marker.
+    This class is used to read the image from the USB camera, and calculate the pose using the ArUco marker.
     """
-    
+
     def __init__(
         self,
         camera_cfg: CameraConfig,
@@ -49,7 +83,7 @@ class UsbCamera:
         print(f"Camera {self.id} Resolution: {self.width}x{self.height}")
         print(f"Camera {self.id} matrix:\n{self.mtx}")
         print(f"Camera {self.id} distortion:\n{self.dist}")
-        
+
         # Set the detector parameters
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)
         aruco_detector_params = cv2.aruco.DetectorParameters()
@@ -63,32 +97,30 @@ class UsbCamera:
 
         # Set the marker size
         self.marker_size = camera_cfg.marker_size
+        self.marker_num = camera_cfg.marker_num
         print(f"Camera {self.id} Marker size: {self.marker_size}")
-        
-        # Set the initial pose
-        self.init_pose = np.zeros(6)
 
         # Set the translation and rotation from marker frame to global frame
         self.transfer_tvec = np.array(camera_cfg.transfer_tvec)
         self.transfer_rmat = np.array(camera_cfg.transfer_rmat)
-        
-        # Set the initial pose
-        self.init_pose = np.zeros(6)
-        # Set the pose
-        self.pose = np.zeros(6)
 
+        # Set the pose
+        self.pose = np.zeros([self.marker_num, 6])
+
+        # Set the clahe
+        self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
+        # Set the sharpen kernel
+        self.sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+        
         # Set the filter parameters
         self.filter_on = camera_cfg.filter_on
         self.filter_frame = camera_cfg.filter_frame
         print(f"Pose Filter: {self.filter_on}")
         if self.filter_on:
             print(f"Filter frame: {self.filter_frame}")
-        self.last_pose = np.zeros(6)
+        self.last_pose = np.zeros([self.marker_num, 6])
         self.img = np.zeros((self.height, self.width, 3))
         self.first_frame = True
-
-        self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
-        self.sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
 
         # Init pose
         print(f"Calculating the initial pose of Camera {self.id} ...")
@@ -96,7 +128,6 @@ class UsbCamera:
         self.init_tvec = self.init_pose[:, :3]
         self.init_rvec = self.init_pose[:, 3:]
         self.init_rmat = [spR.from_rotvec(rvec).as_matrix() for rvec in self.init_rvec]
-
         print(f"Initial pose: {self.init_pose}")
 
     def _calculateInitPose(self) -> np.ndarray:
@@ -172,7 +203,7 @@ class UsbCamera:
 
         # Return the filtered pose
         return filtered_pose
-    
+
     def _imageToPose(self, img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Get the pose and image from the camera.
@@ -497,7 +528,7 @@ if __name__ == "__main__":
             camera_cfg=camera_cfg,
         )
         show_img = args.show_img
-        
+
         camera_id = camera.id
         frame_count = 0
         start_time = time.time()
@@ -509,7 +540,7 @@ if __name__ == "__main__":
             pose = camera.poseToReferece(pose)
             # Convert the pose to the euler angles
             pose = camera.poseVectorToEuler(pose)
-            
+
             # Print the FPS
             frame_count += 1
             if frame_count == 50:

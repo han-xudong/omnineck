@@ -1,4 +1,29 @@
-#!/usr/bin/env python
+"""
+OmniNeck DataModule.
+
+This module implements the OmniNeck DataModule for PyTorch Lightning.
+It provides data loading and preprocessing functionalities for training
+and validation of the OmniNeck model.
+
+Usage:
+
+```python
+from omnineck.models import OmniNeckDataModule
+datamodule = OmniNeckDataModule(
+    dataset_path=<dataset_path>,
+    batch_size=<batch_size>,
+    num_workers=<num_workers>,
+    pin_memory=<pin_memory>,
+    train_val_split=<train_val_split>,
+)
+datamodule.setup()
+```
+
+where `<dataset_path>` is the path to the dataset, `<batch_size>` is the batch size,
+`<num_workers>` is the number of workers for data loading, `<pin_memory>` is a boolean
+indicating whether to pin memory, and `<train_val_split>` is a tuple indicating the
+train/validation split ratios.
+"""
 
 import os
 import numpy as np
@@ -9,16 +34,13 @@ from pytorch_lightning import LightningDataModule
 
 
 class NeckDataset(Dataset):
-    """OmniNeck dataset.
-
-    OmniNeck dataset sample contains:
-        - pose: 6-dim
-        - force: 6-dim
-        - shape: 3n-dim
+    """
+    OmniNeck dataset.
     """
 
     def __init__(self, data: np.ndarray, transform=None):
-        """Initialize the dataset.
+        """
+        Initialize the dataset.
 
         Args:
             data (np.ndarray): The dataset.
@@ -29,7 +51,8 @@ class NeckDataset(Dataset):
         self.transform = transform
 
     def __len__(self):
-        """Get the length of the dataset.
+        """
+        Get the length of the dataset.
 
         Returns:
             int: The length of the dataset.
@@ -38,7 +61,8 @@ class NeckDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        """Get the item of the dataset.
+        """
+        Get the item of the dataset.
 
         Args:
             idx (int): The index of the item.
@@ -55,15 +79,9 @@ class NeckDataset(Dataset):
         return data_tensor
 
 
-class NeckDataModule(LightningDataModule):
-    """OmniNeck data module.
-
-    The dataModule implements 5 key methods:
-        - prepare_data (things to do on 1 GPU/TPU, not on every GPU/TPU in distributed mode)
-        - setup (things to do on every accelerator in distributed mode)
-        - train_dataloader (the training dataloader)
-        - val_dataloader (the validation dataloader)
-        - test_dataloader (the test dataloader)
+class OmniNeckDataModule(LightningDataModule):
+    """
+    OmniNeck data module.
     """
 
     def __init__(
@@ -73,14 +91,16 @@ class NeckDataModule(LightningDataModule):
         num_workers: int = 4,
         pin_memory: bool = False,
         train_val_split: Tuple[float, float] = (0.875, 0.125),
-    ):
-        """Initialize the data module.
+    ) -> None:
+        """
+        Initialize the data module.
 
         Args:
-            train_val_split (Tuple[float, float], optional): The train/val split. Defaults to (0.875, 0.125).
+            data_folder (str): The folder containing the dataset.
             batch_size (int, optional): The batch size. Defaults to 128.
             num_workers (int, optional): The number of workers. Defaults to 4.
             pin_memory (bool, optional): Whether to pin memory. Defaults to False.
+            train_val_split (Tuple[float, float], optional): The train/val split. Defaults to (0.875, 0.125).
         """
 
         super().__init__()
@@ -95,24 +115,9 @@ class NeckDataModule(LightningDataModule):
         self.data_test: Optional[Dataset] = None
 
     def prepare_data(self):
-        """Download data if needed.
-
-        This method is called only from a single GPU.
-        Do not use it to assign state (self.x = y).
-        """
-
         pass
 
     def setup(self, stage: Optional[str] = None):
-        """Load data.
-
-        This method is called by lightning separately when using `trainer.fit()` and `trainer.test()`!
-        The `stage` can be used to differentiate whether the `setup()` is called before trainer.fit()` or `trainer.test()`.
-
-        Args:
-            stage (Optional[str], optional): The stage. Defaults to None.
-        """
-
         if not self.data_train or not self.data_val or not self.data_test:
 
             data_path = os.path.join(self.dataset_path, "train_data.npy")

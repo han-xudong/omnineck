@@ -1,3 +1,7 @@
+"""
+Dataclass for detector configuration parameters.
+"""
+
 from dataclasses import dataclass
 
 

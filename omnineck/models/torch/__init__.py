@@ -1,2 +1,2 @@
 from .necknet import NeckNet
-from .datamodule import NeckDataModule
+from .datamodule import OmniNeckDataModule

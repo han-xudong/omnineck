@@ -5,6 +5,8 @@ Camera Calibration Script
 
 This script captures images from a camera (USB) and saves them for calibration.
 
+Usage:
+
 ```bash
 python calibrate_camera.py --id <id> --width 640 --height 480
 ```
@@ -155,9 +157,7 @@ def main(id: int, width: int, height: int) -> None:
                 "w",
             ) as f:
                 yaml.dump(camera_dist, f)
-            print(
-                f"Calibration results are saved in {img_dir}/camera_{id}_{width}x{height}.yaml."
-            )
+            print(f"Calibration results are saved in {img_dir}/camera_{id}_{width}x{height}.yaml.")
 
 
 if __name__ == "__main__":

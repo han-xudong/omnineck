@@ -161,6 +161,9 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Visual Studio Code
+.vscode/
+
 # data and models
 data/*/
 models/checkpoints/
@@ -170,6 +173,7 @@ configs/camera_*.yaml
 # abaqus
 *.rpy*
 *.jnl
+abaqus.*
 
 # uv
 uv.lock

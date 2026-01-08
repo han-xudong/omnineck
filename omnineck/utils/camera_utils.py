@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Camera utility functions
+"""
 
 import subprocess
 import re
@@ -74,6 +76,9 @@ def get_camera_capabilities(device="/dev/video0") -> dict:
     """
     Query camera supported pixel formats, resolutions and fps using v4l2-ctl.
 
+    Args:
+        device (str): The video device path. Default is "/dev/video0".
+
     Returns:
         dict:
         {
@@ -86,6 +91,7 @@ def get_camera_capabilities(device="/dev/video0") -> dict:
             }
         }
     """
+
     cmd = ["v4l2-ctl", "--device", device, "--list-formats-ext"]
     result = subprocess.run(cmd, capture_output=True, text=True)
 

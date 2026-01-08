@@ -6,7 +6,7 @@ Training script for NeckNet.
 Usage:
 
 ```bash
-uv run python scripts/train.py
+python scripts/train.py
 ```
 
 Various configuration options are available:
@@ -36,14 +36,12 @@ import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
-from omnineck.models import NeckDataModule
+from omnineck.models import OmniNeckDataModule
 from omnineck.models import NeckNet
 from omnineck.configs.train import TrainConfig
 
-# Set the training function
-def main(
-    cfg: TrainConfig,
-) -> None:
+
+def main(cfg: TrainConfig) -> None:
     """
     Training function.
 
@@ -52,13 +50,14 @@ def main(
     """
 
     # DataModule
-    datamodule = NeckDataModule(
+    datamodule = OmniNeckDataModule(
         dataset_path=cfg.data.dataset_path,
         batch_size=cfg.batch_size,
         num_workers=cfg.data.num_workers,
         pin_memory=cfg.data.pin_memory,
         train_val_split=cfg.data.train_val_split,
     )
+    datamodule.setup()
 
     # Callbacks
     logger = TensorBoardLogger(
@@ -112,5 +111,5 @@ def main(
 
 if __name__ == "__main__":
     cfg = tyro.cli(TrainConfig)
-    
+
     main(cfg=cfg)
