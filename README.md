@@ -40,7 +40,7 @@ Before training the model, you need to prepare the dataset according to the [tra
 Then, run the following command to train the model:
 
 ```bash
-uv run python scripts/train.py <options>
+uv run python scripts/train.py [options]
 ```
 
 There are several configurable options for training:
@@ -61,15 +61,11 @@ There are several configurable options for training:
 | --model.h1-dim         | Hidden layer 1 dimension                         | tuple | 128 1024            |
 | --model.h2-dim         | Hidden layer 2 dimension                         | tuple | 128 1024            |
 
+You can also follow the [training guide](./docs/training.ipynb) to test the model by calculating the R2 score, and RMSE, and visualizing the prediction results, etc.
+
 ## 🤖 Hardware
 
-The hardware mainly consists of a camera, a soft struture and several 3D-printed parts. The camera is used for capturing images, while the controller board publishes the images through TCP protocol. The soft struture is made of polyurethane (PU). 3D-printed parts are used to assemble the camera, controller board, and power board together.
-
-<p align="center">
-  <img src="docs/assets/assembly.jpg" alt="Omni-Neck Assembly" width="400" />
-</p>
-
-But it's not necessary to have the hardware if you just want to run the code. It's available to train and test in the simulation environment.
+The hardware mainly consists of a camera, a soft struture and several 3D-printed parts. The camera is used for capturing images, while the controller board publishes the images through TCP protocol. The soft struture is made of polyurethane (PU). 3D-printed parts are used to assemble the camera, controller board, and power board together. More details about the hardware can be found in the [assembly guide](https://sites.google.com/view/prosoro-hardware).
 
 ## 🚀 Deployment
 
@@ -93,3 +89,18 @@ All data can be visualized through the [OmniNeck Viewer](https://github.com/han-
 ## 📄 License
 
 This repository is released under the [MIT License](LICENSE).
+
+## 🔗 Citation
+
+If you find this project useful in your research, please consider citing:
+
+```bibtex
+@article{han2025anchoring,
+    title={Anchoring Morphological Representations Unlocks Latent Proprioception in Soft Robots},
+    author={Han, Xudong and Guo, Ning and Xu, Ronghan and Wan, Fang and Song, Chaoyang},
+    journal={Advanced Intelligent Systems},
+    volume={7},
+    pages={e202500444},
+    year={2025}
+}
+```
