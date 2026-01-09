@@ -14,7 +14,7 @@ class ModelConfig:
     x_dim: Tuple[int, ...] = (6,)
     """Input dimension"""
 
-    y_dim: Tuple[int, ...] = (6, 1800)
+    y_dim: Tuple[int, ...] = (6, 2862)
     """Output dimension"""
 
     h1_dim: Tuple[int, ...] = (128, 1024)

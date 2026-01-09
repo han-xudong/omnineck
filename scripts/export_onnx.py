@@ -20,12 +20,12 @@ import torch
 from torch import Tensor
 from typing import List
 import onnx
-from metafinger.models.torch.fingernet import FingerNet
+from omnineck.models import NeckNet
 
 
-class DropFingerNet(FingerNet):
+class NeckNetRuntime(NeckNet):
     """
-    DropFingerNet is a FingerNet model with dropped inputs.
+    NeckNetRuntime is a NeckNet model for runtime inference.
     It is used for ONNX export and real-world deployment.
     """
     
@@ -42,11 +42,9 @@ class DropFingerNet(FingerNet):
         
         Args:
             x_dim: dimension of the input data
+            y_dim: dimension of the output data
             h1_dim: dimension of the hidden layer 1
             h2_dim: dimension of the hidden layer 2
-            z_dim: dim of z space
-            mean: The mean of the input data.
-            std: The standard deviation of the input data.
         """
         
         # Call the super constructor
@@ -65,23 +63,21 @@ class DropFingerNet(FingerNet):
         
         outputs = []
         for i in range(len(self.y_dim)):
-            # Get the estimator for the i-th output
-            estimator = getattr(self, f"estimator_{i}")
-            y = estimator(x)
+            y = getattr(self, f"estimator_{i}")(x)
             outputs.append(y)
         return outputs
 
 def onnx_export(ckpt_path: str) -> None:
     # Load the model
     device = torch.device("cpu")
-    model = DropFingerNet.load_from_checkpoint(
+    model = NeckNetRuntime.load_from_checkpoint(
         os.path.join(
             ckpt_path + "checkpoints", os.listdir(ckpt_path + "checkpoints")[0]
         ),
     ).to(device)
     model.eval()
     
-    model_name = ckpt_path.split("/")[-2]  # Extract model name from the path
+    model_name = ckpt_path.split("/")[-3]  # Extract model name from the path
     print(f"Exporting {model_name} model to ONNX format...")
 
     # Get input dimension from the model
@@ -125,6 +121,6 @@ def onnx_export(ckpt_path: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ckpt_path", type=str, default="lightning_logs/FingerNet_surf/")
+    parser.add_argument("--ckpt_path", type=str, default="lightning_logs/NeckNet/0108-1949/", help="Path to the checkpoint folder.")
     args = parser.parse_args()
     onnx_export(args.ckpt_path)

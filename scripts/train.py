@@ -69,7 +69,7 @@ def main(cfg: TrainConfig) -> None:
         monitor="val_loss",
         mode="min",
         save_top_k=1,
-        filename="epoch{epoch:04d}-val_loss{val_loss:.4f}",
+        filename="{epoch:04d}-{val_loss:.4f}",
         save_last=True,
     )
     trainer = Trainer(
