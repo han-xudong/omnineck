@@ -13,7 +13,7 @@ from omnineck.configs.deploy import DeployConfig, CameraConfig
 
 class OmniNeck:
     """
-    OmniNeck class to run the omni-neck sensing and publishing.
+    OmniNeck class to run the OmniNeck sensing and publishing.
 
     Attributes:
         camera (UsbCamera): The camera object to capture images and poses.

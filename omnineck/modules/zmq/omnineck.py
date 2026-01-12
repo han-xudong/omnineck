@@ -48,8 +48,8 @@ class OmniNeckPublisher:
         Args:
             img: The image captured by the camera.
             pose: The pose of the marker.
-            force: The force on the bottom surface of the omni-neck.
-            node: The node displacement of the omni-neck.
+            force: The force on the bottom surface of the OmniNeck.
+            node: The node displacement of the OmniNeck.
         """
 
         # Set the message
@@ -120,8 +120,8 @@ class OmniNeckSubscriber:
         Returns:
             img: The image captured by the camera.
             pose: The pose of the marker.
-            force: The force on the bottom surface of the omni-neck.
-            node: The node displacement of the omni-neck.
+            force: The force on the bottom surface of the OmniNeck.
+            node: The node displacement of the OmniNeck.
 
         Raises:
             zmq.ZMQError: If no message is received within the timeout period.

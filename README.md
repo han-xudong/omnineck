@@ -1,4 +1,4 @@
-<h1 align="center">Omni-Neck</h1>
+<h1 align="center">OmniNeck</h1>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white" /></a>
@@ -15,7 +15,7 @@
   <img src="docs/assets/banner.jpg" alt="OmniNeck Banner" width="700"/>
 </p>
 
-Omni-Neck is a soft robotic module that mimics the flexibility and dexterity of biological necks. It is designed to provide a wide range of motion and sensing capabilities, making it suitable for various applications in robotics, including manipulation, exploration, and human-robot interaction. Omni-Neck is part of the [Proprioceptive Soft Robot (ProSoRo)](https://prosoro.github.io) family.
+OmniNeck is a soft robotic module that mimics the flexibility and dexterity of biological necks. It is designed to provide a wide range of motion and sensing capabilities, making it suitable for various applications in robotics, including manipulation, exploration, and human-robot interaction. OmniNeck is part of the [Proprioceptive Soft Robot (ProSoRo)](https://prosoro.github.io) family.
 
 ## 📦 Installation
 
@@ -69,10 +69,10 @@ The hardware mainly consists of a camera, a soft struture and several 3D-printed
 
 ## 🚀 Deployment
 
-After connecting the Omni-Neck to the computer and modifying the configuration, you can deploy it by running the following command:
+After connecting the OmniNeck to the computer and modifying the configuration, you can deploy it by running the following command:
 
 ```bash
-uv run omnineck
+uv run omnineck [options]
 ```
 
 Various configuration options are available:
@@ -84,7 +84,22 @@ Various configuration options are available:
 | --camera-yaml | Path to the camera configuration YAML file. | str  | ./configs/camera/camera_001.yaml |
 | --onnx-path   | Path to the ONNX model file.                | str  | ./models/NeckNet.onnx            |
 
-All data can be visualized through the [OmniNeck Viewer](https://github.com/han-xudong/omnineck-viewer).
+All data, including images, poses, forces, and node displacements, will be published through TCP (ZeroMQ + Protocol Buffers) in the following format:
+
+```protobuf
+package OmniNeck;
+
+message OmniNeck
+{
+    double timestamp = 1;
+    bytes img = 2;
+    repeated double pose = 3;
+    repeated double force = 4;
+    repeated double node = 5;
+}
+```
+
+They can be visualized through the [OmniNeck Viewer](https://github.com/han-xudong/omnineck-viewer).
 
 ![OmniNeck Viewer](docs/assets/screenshot.png)
 
