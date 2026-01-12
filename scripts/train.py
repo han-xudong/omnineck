@@ -106,7 +106,9 @@ def main(cfg: TrainConfig) -> None:
     ckpt = torch.load(best_ckpt, map_location="cpu")
     state_dict = ckpt["state_dict"]
 
-    torch.save(state_dict, os.path.join(trainer.logger.log_dir, f"{cfg.model.name}.pt"))
+    torch.save(
+        state_dict, os.path.join(trainer.logger.log_dir, f"{cfg.model.name}_{trainer.logger.version}.pt")
+    )
 
 
 if __name__ == "__main__":
