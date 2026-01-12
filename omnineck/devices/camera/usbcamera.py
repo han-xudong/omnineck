@@ -83,6 +83,9 @@ class UsbCamera:
         print(f"Camera {self.id} Resolution: {self.width}x{self.height}")
         print(f"Camera {self.id} matrix:\n{self.mtx}")
         print(f"Camera {self.id} distortion:\n{self.dist}")
+        
+        self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1) # 1 for manual exposure, 3 for auto exposure
+        self.camera.set(cv2.CAP_PROP_EXPOSURE, 9300/camera_cfg.fps)  # Set exposure time in ms
 
         # Set the detector parameters
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)

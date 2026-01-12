@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class DetectorConfig:
-    adaptiveThreshConstant: int = 5
+    adaptiveThreshConstant: int = 7
     "Constant for adaptive thresholding before finding contours"
 
     adaptiveThreshWinSizeMin: int = 3
@@ -55,10 +55,10 @@ class DetectorConfig:
     cornerRefinementMethod: int = 2
     """CORNER_REFINE_NONE=0, CORNER_REFINE_SUBPIX=1, CORNER_REFINE_CONTOUR=2, CORNER_REFINE_APRILTAG=3"""
 
-    cornerRefinementWinSize: int = 7
+    cornerRefinementWinSize: int = 5
     """Maximum window size for the corner refinement process (in pixels)."""
 
-    cornerRefinementMaxIterations: int = 30
+    cornerRefinementMaxIterations: int = 50
     """Maximum number of iterations for stop criteria of the corner refinement process."""
 
     cornerRefinementMinAccuracy: float = 0.01

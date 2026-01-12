@@ -1,1 +1,1 @@
-from .zmq import NeckPublisher
+from .zmq import OmniNeckPublisher

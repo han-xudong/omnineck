@@ -42,7 +42,7 @@ def generate_protobuf_files(proto_dir: str) -> None:
             
 if __name__ == "__main__":
     proto_directory = os.path.join(
-        "metaball",
+        "omnineck",
         "modules",
         "protobuf"
     )

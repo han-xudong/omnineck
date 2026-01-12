@@ -24,13 +24,13 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12omnineck_msg.proto\x12\x06\x46inger\"S\n\x06\x46inger\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x0b\n\x03img\x18\x02 \x01(\x0c\x12\x0c\n\x04pose\x18\x03 \x03(\x01\x12\r\n\x05\x66orce\x18\x04 \x03(\x01\x12\x0c\n\x04node\x18\x05 \x03(\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12omnineck_msg.proto\x12\x08OmniNeck\"U\n\x08OmniNeck\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x0b\n\x03img\x18\x02 \x01(\x0c\x12\x0c\n\x04pose\x18\x03 \x03(\x01\x12\r\n\x05\x66orce\x18\x04 \x03(\x01\x12\x0c\n\x04node\x18\x05 \x03(\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'omnineck_msg_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_FINGER']._serialized_start=30
-  _globals['_FINGER']._serialized_end=113
+  _globals['_OMNINECK']._serialized_start=32
+  _globals['_OMNINECK']._serialized_end=117
 # @@protoc_insertion_point(module_scope)

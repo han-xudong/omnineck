@@ -72,7 +72,7 @@ The hardware mainly consists of a camera, a soft struture and several 3D-printed
 After connecting the Omni-Neck to the computer and modifying the configuration, you can deploy it by running the following command:
 
 ```bash
-uv run python scripts/deploy.py
+uv run omnineck
 ```
 
 Various configuration options are available:
@@ -85,6 +85,8 @@ Various configuration options are available:
 | --onnx-path   | Path to the ONNX model file.                | str  | ./models/NeckNet.onnx            |
 
 All data can be visualized through the [OmniNeck Viewer](https://github.com/han-xudong/omnineck-viewer).
+
+![OmniNeck Viewer](docs/assets/screenshot.png)
 
 ## 📄 License
 

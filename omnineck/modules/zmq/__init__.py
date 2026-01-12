@@ -1,1 +1,1 @@
-from .omnineck import NeckPublisher
+from .omnineck import OmniNeckPublisher

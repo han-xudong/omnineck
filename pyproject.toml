@@ -39,6 +39,9 @@ dependencies = [
     "tyro==1.0.3",
 ]
 
+[project.scripts]
+omnineck = "omnineck.cli:omnineck"
+
 [project.urls]
 "Homepage" = "https://github.com/han-xudong/omnineck"
 "Bug Tracker" = "https://github.com/han-xudong/omnineck/issues"

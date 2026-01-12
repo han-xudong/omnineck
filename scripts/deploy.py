@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
 """
-Deploy OmniNeck
+Deploy Script for OmniNeck
 
-This script is to run the OmniNeck, capturing omni-neck's deformation and
-inferring the force and node displacement using the trained model.
-
-Example usage:
+Usage:
 
 ```bash
-python deploy.py
+python scripts/deploy.py
 ```
 
 Various configuration options are available:
+
 ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 | Options       | Description                                   | Type   | Default                          |
 |---------------|-----------------------------------------------|--------|----------------------------------|
@@ -23,107 +21,18 @@ Various configuration options are available:
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 """
 
-import time
+
 import tyro
-import cv2
-import yaml
-from omnineck.devices import UsbCamera
-from omnineck.modules import NeckPublisher
-from omnineck.models import NeckNetRuntime
-from omnineck.configs.deploy import DeployConfig, CameraConfig
+from omnineck import OmniNeck
+from omnineck.configs.deploy import DeployConfig
 
 
-class OmniNeck:
-    """
-    OmniNeck class to run the omni-neck sensing and publishing.
+def main():
+    cfg = tyro.cli(DeployConfig)
 
-    Attributes:
-        camera (UsbCamera): The camera object to capture images and poses.
-        neck_net (NeckNetRuntime): The NeckNet model for inference.
-        neck_publisher (NeckPublisher): The publisher to send data.
-    """
-
-    def __init__(self, cfg: DeployConfig) -> None:
-        """
-        Initialize the OmniNeck.
-
-        Args:
-            cfg (DeployConfig): The deployment configuration.
-        """
-
-        with open(cfg.camera_yaml, "r") as f:
-            camera_params_dict = yaml.safe_load(f)
-
-        camera_cfg = CameraConfig(**camera_params_dict)
-
-        # Create a camera
-        self.camera = UsbCamera(camera_cfg)
-
-        # Create a NeckNet model
-        self.neck_net = NeckNetRuntime(cfg.onnx_path)
-
-        # Create a neck publisher
-        self.neck_publisher = NeckPublisher(cfg.host, cfg.port)
-
-    def release(self) -> None:
-        """
-        Release the camera and close the neck publisher.
-        """
-
-        self.camera.release()
-        self.neck_publisher.close()
-
-    def run(self) -> None:
-        """
-        Run the OmniNeck to capture images, infer force and node displacement,
-        and publish the data.
-        """
-
-        # Set the jpeg parameters
-        jpeg_params = [cv2.IMWRITE_JPEG_QUALITY, 50]
-
-        # Initialize the variables
-        start_time = time.time()
-        frame_count = 0
-
-        # Start publishing
-        try:
-            while True:
-                # Get the image and pose
-                pose, img = self.camera.readImageAndPose()
-                # Convert the pose to the reference pose
-                pose_ref = self.camera.poseToReferece(pose)
-                # Convert the pose from the marker frame to the camera frame
-                pose_global = self.camera.poseAxisTransfer(pose_ref)
-                # Convert the pose to the euler angles
-                pose_euler = self.camera.poseVectorToEuler(pose_global)
-
-                # Predict the force and node
-                force, node = self.neck_net.infer(pose_euler)
-
-                # Publish the message
-                self.neck_publisher.publishMessage(
-                    cv2.imencode(".jpg", img, jpeg_params)[1].tobytes(),
-                    pose_euler,
-                    force,
-                    node,
-                )
-
-                frame_count += 1
-
-                # Print the FPS
-                if frame_count == 60:
-                    print(f"FPS: %.2f" % (frame_count / (time.time() - start_time)))
-                    start_time = time.time()
-                    frame_count = 0
-        except KeyboardInterrupt:
-            print("Stopping the camera...")
-        finally:
-            self.release()
+    omnineck = OmniNeck(cfg=cfg)
+    omnineck.run()
 
 
 if __name__ == "__main__":
-    cfg = tyro.cli(DeployConfig)
-
-    omnineck = OmniNeck(cfg)
-    omnineck.run()
+    main()

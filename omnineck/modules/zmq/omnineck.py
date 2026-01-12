@@ -7,7 +7,7 @@ from datetime import datetime
 from omnineck.modules.protobuf import omnineck_msg_pb2
 
 
-class NeckPublisher:
+class OmniNeckPublisher:
     def __init__(
         self, host: str, port: int, hwm: int = 1, conflate: bool = True
     ) -> None:
@@ -70,7 +70,7 @@ class NeckPublisher:
             self.context.term()
 
 
-class NeckSubscriber:
+class OmniNeckSubscriber:
     def __init__(
         self,
         host: str,
