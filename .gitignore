@@ -166,7 +166,7 @@ cython_debug/
 
 # data and models
 data/*/
-models/checkpoints/
+models/
 lightning_logs/
 configs/camera_*.yaml
 
