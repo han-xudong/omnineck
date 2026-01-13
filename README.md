@@ -15,7 +15,7 @@
   <img src="docs/assets/banner.jpg" alt="OmniNeck Banner" width="700"/>
 </p>
 
-OmniNeck is a soft robotic module that mimics the flexibility and dexterity of biological necks. It is designed to provide a wide range of motion and sensing capabilities, making it suitable for various applications in robotics, including manipulation, exploration, and human-robot interaction. OmniNeck is part of the [Proprioceptive Soft Robot (ProSoRo)](https://prosoro.github.io) family.
+OmniNeck is a soft robotic module that mimics the flexibility and dexterity of biological necks. It is designed to provide a wide range of motion and sensing capabilities, making it suitable for various applications in robotics, including manipulation, exploration, and human-robot interaction. OmniNeck is a member of the [Proprioceptive Soft Robotic Module (ProSoRo)](https://prosoro.github.io) family.
 
 ## 📦 Installation
 
@@ -57,7 +57,7 @@ There are several configurable options for training:
 | --data.train-val-split | Train-validation split ratios.                   | tuple | 0.875 0.125         |
 | --model.name           | Model name                                       | str   | NeckNet             |
 | --model.x-dim          | Input dimension                                  | tuple | 6                   |
-| --model.y-dim          | Output dimension                                 | tuple | 6 1800              |
+| --model.y-dim          | Output dimension                                 | tuple | 6 2862              |
 | --model.h1-dim         | Hidden layer 1 dimension                         | tuple | 128 1024            |
 | --model.h2-dim         | Hidden layer 2 dimension                         | tuple | 128 1024            |
 
@@ -65,7 +65,7 @@ You can also follow the [training guide](./docs/training.ipynb) to test the mode
 
 ## 🤖 Hardware
 
-The hardware mainly consists of a camera, a soft struture and several 3D-printed parts. The camera is used for capturing images, while the controller board publishes the images through TCP protocol. The soft struture is made of polyurethane (PU). 3D-printed parts are used to assemble the camera, controller board, and power board together. More details about the hardware can be found in the [assembly guide](https://sites.google.com/view/prosoro-hardware).
+The hardware mainly consists of a camera, a soft struture and several 3D-printed parts. The camera is used for capturing images, while the controller board publishes the images through TCP protocol. The soft struture is made of polyurethane (PU). More details about the hardware can be found in the [assembly guide](https://sites.google.com/view/prosoro-hardware).
 
 ## 🚀 Deployment
 
