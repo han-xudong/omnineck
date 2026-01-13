@@ -7,9 +7,11 @@
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.10.0-5c3ee8?logo=opencv&logoColor=white" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-black?logo=open-source-initiative&logoColor=white" /></a>
   <br/>
-  <a href="./docs/training.ipynb">⚡Training Guide</a> |
-  <a href="https://sites.google.com/view/prosoro-hardware">🤖Assembly Guide</a> |
-  <a href="https://github.com/han-xudong/omnineck-viewer">🫧Data Viewer</a>
+  <a href="./docs/training.ipynb">Training Guide</a> |
+  <a href="https://sites.google.com/view/prosoro-hardware">Assembly Guide</a> |
+  <a href="https://github.com/han-xudong/omnineck-viewer">Data Viewer</a> |
+  <a href="https://huggingface.co/han-xudong/necknet">Model</a> |
+  <a href="https://huggingface.co/datasets/han-xudong/prosoro-100k">Dataset</a>
 </p>
 <p align="center">
   <img src="docs/assets/banner.jpg" alt="OmniNeck Banner" width="700"/>
