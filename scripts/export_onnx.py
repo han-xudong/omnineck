@@ -17,55 +17,8 @@ where <ckpt_dir> is the path to the checkpoint folder.
 import argparse
 import os
 import torch
-from torch import Tensor
-from typing import List
 import onnx
 from omnineck.models import NeckNet
-
-
-class NeckNetRuntime(NeckNet):
-    """
-    NeckNetRuntime is a NeckNet model for runtime inference.
-    It is used for ONNX export and real-world deployment.
-    """
-
-    def __init__(
-        self,
-        x_dim: list,
-        y_dim: list,
-        h1_dim: list,
-        h2_dim: list,
-        **kwargs,
-    ) -> None:
-        """
-        Initialize the model.
-
-        Args:
-            x_dim: dimension of the input data
-            y_dim: dimension of the output data
-            h1_dim: dimension of the hidden layer 1
-            h2_dim: dimension of the hidden layer 2
-        """
-
-        # Call the super constructor
-        super().__init__(x_dim, y_dim, h1_dim, h2_dim, **kwargs)
-
-    def forward(self, x: Tensor) -> List[Tensor]:
-        """
-        Forward pass of the model.
-
-        Args:
-            x: Input tensor.
-
-        Returns:
-            Tuple of output tensors.
-        """
-
-        outputs = []
-        for i in range(len(self.y_dim)):
-            y = getattr(self, f"estimator_{i}")(x)
-            outputs.append(y)
-        return outputs
 
 
 def onnx_export(ckpt_dir: str) -> None:
@@ -82,7 +35,7 @@ def onnx_export(ckpt_dir: str) -> None:
     ckpt_path = os.path.join(ckpt_dir, "checkpoints", os.listdir(os.path.join(ckpt_dir, "checkpoints"))[0])
     # Load the model
     device = torch.device("cpu")
-    model = NeckNetRuntime.load_from_checkpoint(ckpt_path).to(device)
+    model = NeckNet.load_from_checkpoint(ckpt_path, weights_only=False).to(device)
     model.eval()
 
     # Get input dimension from the model
@@ -129,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt_dir",
         type=str,
-        default="lightning_logs/NeckNet/0108-1949/",
+        default="lightning_logs/NeckNet/0114-1035/",
         help="Path to the checkpoint folder.",
     )
     args = parser.parse_args()

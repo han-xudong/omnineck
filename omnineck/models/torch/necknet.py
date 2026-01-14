@@ -8,6 +8,20 @@ from pytorch_lightning import LightningModule
 from torch.nn import functional as F
 
 
+class Normalizer(nn.Module):
+    def __init__(self, mean: Tensor, std: Tensor, eps: float = 1e-8):
+        super().__init__()
+        self.register_buffer("mean", mean)
+        self.register_buffer("std", std)
+        self.eps = eps
+
+    def normalize(self, x: Tensor) -> Tensor:
+        return (x - self.mean) / (self.std + self.eps)
+
+    def denormalize(self, x: Tensor) -> Tensor:
+        return x * (self.std + self.eps) + self.mean
+
+
 class NeckNet(LightningModule):
     """
     NeckNet is a PyTorch Lightning model for the omni-neck dataset.
@@ -20,6 +34,8 @@ class NeckNet(LightningModule):
         y_dim: Tuple[int, ...],
         h1_dim: Tuple[int, ...],
         h2_dim: Tuple[int, ...],
+        mean: np.ndarray = None,
+        std: np.ndarray = None,
         lr: float = 1e-4,
         **kwargs,
     ) -> None:
@@ -43,21 +59,59 @@ class NeckNet(LightningModule):
         self.y_dim = y_dim
         self.h1_dim = h1_dim
         self.h2_dim = h2_dim
-        
+
+        self.x_mean = []
+        self.x_std = []
+        self.y_mean = []
+        self.y_std = []
+
+        if mean is not None and std is not None:
+            data_dim = np.concatenate((self.x_dim, self.y_dim))
+            data_start = 0
+            data_end = 0
+            for i in range(len(data_dim)):
+                data_end += data_dim[i]
+                if i < len(self.x_dim):
+                    self.x_mean.append(mean[data_start:data_end])
+                    self.x_std.append(std[data_start:data_end])
+                else:
+                    self.y_mean.append(mean[data_start:data_end])
+                    self.y_std.append(std[data_start:data_end])
+                data_start = data_end
+        else:
+            assert False, "Mean and std must be provided."
 
         # Define the model architecture
-        for i in range(len(self.y_dim)):
-            setattr(
-                self,
-                f"estimator_{i}",
+        self.x_normalizers = nn.ModuleList(
+            [
+                Normalizer(
+                    mean=torch.tensor(self.x_mean[i], dtype=torch.float32),
+                    std=torch.clamp(torch.tensor(self.x_std[i], dtype=torch.float32), min=1e-8),
+                )
+                for i in range(len(self.x_dim))
+            ]
+        )
+        self.y_normalizers = nn.ModuleList(
+            [
+                Normalizer(
+                    mean=torch.tensor(self.y_mean[i], dtype=torch.float32),
+                    std=torch.clamp(torch.tensor(self.y_std[i], dtype=torch.float32), min=1e-8),
+                )
+                for i in range(len(self.y_dim))
+            ]
+        )
+        self.estimators = nn.ModuleList(
+            [
                 nn.Sequential(
                     nn.Linear(self.x_dim[0], self.h1_dim[i]),
                     nn.ReLU(),
                     nn.Linear(self.h1_dim[i], self.h2_dim[i]),
                     nn.ReLU(),
                     nn.Linear(self.h2_dim[i], self.y_dim[i]),
-                ),
-            )
+                )
+                for i in range(len(self.y_dim))
+            ]
+        )
 
     @staticmethod
     def pretrained_weights_available():
@@ -88,16 +142,19 @@ class NeckNet(LightningModule):
             x: the input data.
 
         Returns:
-            x_hat_list: the predicted data.
+            y_list: the predicted data.
         """
-        
-        x_hat_list = []
+
+        x = self.x_normalizers[0].normalize(x)
+
+        y_list = []
         for i in range(len(self.y_dim)):
-            x_hat = getattr(self, f"estimator_{i}")(x)
-            x_hat_list.append(x_hat)
+            y = self.estimators[i](x)
+            y = self.y_normalizers[i].denormalize(y)
+            y_list.append(y)
 
         # Return the output data
-        return x_hat_list
+        return y_list
 
     def forward_with_index(self, x: Tensor, output_index: int) -> Tensor:
         """Forward pass of the model with index.
@@ -112,10 +169,13 @@ class NeckNet(LightningModule):
             std: the std.
         """
 
-        x_hat = getattr(self, f"estimator_{output_index}")(x)
+        x = self.x_normalizers[0].normalize(x)
+
+        y = self.estimators[output_index](x)
+        y = self.y_normalizers[output_index].denormalize(y)
 
         # Return the output data
-        return x_hat
+        return y
 
     def _prepare_batch(self, batch: Any) -> Tensor:
         """Prepare the batch.
@@ -157,13 +217,6 @@ class NeckNet(LightningModule):
             data_list.append(data_i)
             data_start = data_end
 
-        # Run the step
-        y_hat_list = []
-
-        for i in range(len(self.y_dim)):
-            y_hat = getattr(self, f"estimator_{i}")(data_list[0])
-            y_hat_list.append(y_hat)
-
         # Define the logs
         logs = {}
 
@@ -171,8 +224,10 @@ class NeckNet(LightningModule):
         loss_list = []
         for i in range(len(self.y_dim)):
             y_i = data_list[i + 1]
-            y_hat_i = y_hat_list[i]
-            loss = F.mse_loss(y_hat_i, y_i)
+            y_i_norm = self.y_normalizers[i].normalize(y_i)
+            x_norm = self.x_normalizers[0].normalize(data_list[0])
+            y_hat_i_norm = self.estimators[i](x_norm)
+            loss = F.mse_loss(y_hat_i_norm, y_i_norm)
             loss_list.append(loss)
             logs[f"loss_{i}"] = loss
 
@@ -254,18 +309,18 @@ class NeckNet(LightningModule):
         Returns:
             optimizer: the optimizer.
         """
-        
+
         # Initialize a list to hold the parameters to optimize
         params = []
-        
+
         # Iterate over each output branch (estimator)
         for i in range(len(self.y_dim)):
             # Add the parameters of the estimator to the optimizer's parameter list
-            params += list(getattr(self, f"estimator_{i}").parameters())
-        
+            params += list(self.estimators[i].parameters())
+
         # Filter out parameters that have requires_grad set to False
         params = list(filter(lambda p: p.requires_grad, params))
-        
+
         # Return the Adam optimizer configured with the filtered parameters
         return torch.optim.Adam(params, lr=self.lr)
 
@@ -275,7 +330,7 @@ class NeckNet(LightningModule):
         Args:
             path: the path to save the exported model.
         """
-        
+
         # Create a traced script module
         traced = torch.jit.script(self)
 

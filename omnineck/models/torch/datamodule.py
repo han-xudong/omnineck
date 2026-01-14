@@ -33,7 +33,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from pytorch_lightning import LightningDataModule
 
 
-class NeckDataset(Dataset):
+class OmniNeckDataset(Dataset):
     """
     OmniNeck dataset.
     """
@@ -126,7 +126,7 @@ class OmniNeckDataModule(LightningDataModule):
 
             data = np.load(data_path)
 
-            dataset = NeckDataset(data=data, transform=None)
+            dataset = OmniNeckDataset(data=data, transform=None)
 
             train_length = int(self.train_val_split[0] * len(dataset.data))
             val_length = int(len(dataset.data) - train_length)
@@ -136,6 +136,15 @@ class OmniNeckDataModule(LightningDataModule):
                 (train_length, val_length),
                 generator=torch.Generator().manual_seed(42),
             )
+            
+            data_mean_path = os.path.join(self.dataset_path, "data_mean.npy")
+            data_std_path = os.path.join(self.dataset_path, "data_std.npy")
+
+            if not os.path.exists(data_mean_path) or not os.path.exists(data_std_path):
+                raise ValueError("Mean and std files do not exist.")
+
+            self.data_mean = np.load(data_mean_path)
+            self.data_std = np.load(data_std_path)
 
     def train_dataloader(self):
         return DataLoader(

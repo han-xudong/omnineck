@@ -24,7 +24,7 @@ Various configuration options are available:
 |--data.train-val-split | Train-validation split ratios.                    | tuple  | 0.875 0.125           |
 |--model.name           | Model name                                        | str    | NeckNet               |
 |--model.x-dim          | Input dimension                                   | tuple  | 6                     |
-|--model.y-dim          | Output dimension                                  | tuple  | 6 1800                |
+|--model.y-dim          | Output dimension                                  | tuple  | 6 2862                |
 |--model.h1-dim         | Hidden layer 1 dimension                          | tuple  | 128 1024              |
 |--model.h2-dim         | Hidden layer 2 dimension                          | tuple  | 128 1024              |
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -90,6 +90,8 @@ def main(cfg: TrainConfig) -> None:
         y_dim=cfg.model.y_dim,
         h1_dim=cfg.model.h1_dim,
         h2_dim=cfg.model.h2_dim,
+        mean=datamodule.data_mean,
+        std=datamodule.data_std,
         lr=cfg.lr,
     )
 
@@ -104,7 +106,7 @@ def main(cfg: TrainConfig) -> None:
         raise RuntimeError("No best checkpoint found. Check monitor key.")
     print("Best ckpt:", best_ckpt)
 
-    ckpt = torch.load(best_ckpt, map_location="cpu")
+    ckpt = torch.load(best_ckpt, map_location="cpu", weights_only=False)
     state_dict = ckpt["state_dict"]
 
     torch.save(
