@@ -45,7 +45,7 @@ def onnx_export(ckpt_dir: str) -> None:
 
     # Export the model
     dummy_input = torch.randn(1, input_dim, dtype=torch.float32)
-    onnx_path = os.path.join(ckpt_dir, f"{model_name}.onnx")
+    onnx_path = os.path.join(ckpt_dir, "model.onnx")
 
     # Export with only one input
     torch.onnx.export(
