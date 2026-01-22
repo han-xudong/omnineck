@@ -213,8 +213,9 @@ class NeckNet(LightningModule):
             batch_idx: the batch index.
 
         Returns:
-            loss: the loss.
-            logs: the logs.
+            results (tuple): step results.
+                - loss (Tensor): the loss.
+                - logs (dict): the logs.
         """
 
         # Prepare the batch

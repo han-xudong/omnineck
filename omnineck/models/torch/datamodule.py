@@ -14,6 +14,7 @@ datamodule = OmniNeckDataModule(
     batch_size=<batch_size>,
     num_workers=<num_workers>,
     pin_memory=<pin_memory>,
+    persistent_workers=<persistent_workers>,
     train_val_split=<train_val_split>,
 )
 datamodule.setup()
@@ -21,7 +22,8 @@ datamodule.setup()
 
 where `<dataset_path>` is the path to the dataset, `<batch_size>` is the batch size,
 `<num_workers>` is the number of workers for data loading, `<pin_memory>` is a boolean
-indicating whether to pin memory, and `<train_val_split>` is a tuple indicating the
+indicating whether to pin memory, `<persistent_workers>` is a boolean indicating whether 
+to use persistent workers, and `<train_val_split>` is a tuple indicating the 
 train/validation split ratios.
 """
 
@@ -98,10 +100,11 @@ class OmniNeckDataModule(LightningDataModule):
         Initialize the data module.
 
         Args:
-            data_folder (str): The folder containing the dataset.
+            dataset_path (str): The path to the dataset directory.
             batch_size (int, optional): The batch size. Defaults to 128.
             num_workers (int, optional): The number of workers. Defaults to 4.
             pin_memory (bool, optional): Whether to pin memory. Defaults to False.
+            persistent_workers (bool, optional): Whether to use persistent workers. Defaults to True.
             train_val_split (Tuple[float, float], optional): The train/val split. Defaults to (0.875, 0.125).
         """
 
