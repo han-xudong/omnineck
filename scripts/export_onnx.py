@@ -28,8 +28,10 @@ def onnx_export(ckpt_dir: str) -> None:
     Args:
         ckpt_dir (str): Path to the checkpoint folder.
     """
-
-    model_name = "_".join(ckpt_dir.split("/")[1:-1])
+    
+    if not ckpt_dir.endswith("/"):
+        ckpt_dir += "/"
+    model_name = "_".join(os.path.join("", ckpt_dir).split("/")[1:-1])
     print(f"Exporting {model_name} model to ONNX format")
 
     ckpt_path = os.path.join(ckpt_dir, "checkpoints", os.listdir(os.path.join(ckpt_dir, "checkpoints"))[0])
@@ -82,7 +84,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt_dir",
         type=str,
-        default="lightning_logs/NeckNet/0121-2334/",
         help="Path to the checkpoint folder.",
     )
     args = parser.parse_args()
