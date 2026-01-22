@@ -20,6 +20,9 @@ class TrainConfig:
 
     save_dir: str = "lightning_logs"
     """Directory to save training logs and checkpoints."""
+    
+    zero_loss_weight: float = 0.5
+    """Weight for the zero-input loss component."""
 
     data: DataConfig = field(default_factory=DataConfig)
 

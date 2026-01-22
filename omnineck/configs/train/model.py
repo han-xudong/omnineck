@@ -8,6 +8,8 @@ from typing import Tuple
 
 @dataclass
 class ModelConfig:
+    """Model configuration parameters."""
+    
     name: str = "NeckNet"
     """Model name"""
 
@@ -17,8 +19,8 @@ class ModelConfig:
     y_dim: Tuple[int, ...] = (6, 2862)
     """Output dimension"""
 
-    h1_dim: Tuple[int, ...] = (128, 1024)
-    """Hidden layer 1 dimension"""
-
-    h2_dim: Tuple[int, ...] = (128, 1024)
-    """Hidden layer 2 dimension"""
+    hidden_dim: Tuple[Tuple[int, ...], ...] = (
+        (512, 512),
+        (1024, 1024),
+    )
+    """Hidden layer dimensions for each part of the model."""

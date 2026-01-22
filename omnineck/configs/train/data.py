@@ -14,8 +14,11 @@ class DataConfig:
     num_workers: int = 4
     """Number of workers for data loading."""
 
-    pin_memory: bool = False
+    pin_memory: bool = True
     """Whether to pin memory during data loading."""
+    
+    persistent_workers: bool = True
+    """Whether to use persistent workers for data loading."""
 
     train_val_split: Tuple[float, float] = (0.875, 0.125)
     """Train-validation split ratios."""

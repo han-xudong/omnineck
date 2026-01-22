@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt_dir",
         type=str,
-        default="lightning_logs/NeckNet/0114-1035/",
+        default="lightning_logs/NeckNet/0121-2334/",
         help="Path to the checkpoint folder.",
     )
     args = parser.parse_args()

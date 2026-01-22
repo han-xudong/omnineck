@@ -26,6 +26,7 @@ train/validation split ratios.
 """
 
 import os
+import h5py
 import numpy as np
 import torch
 from typing import Optional, Tuple
@@ -90,6 +91,7 @@ class OmniNeckDataModule(LightningDataModule):
         batch_size: int = 128,
         num_workers: int = 4,
         pin_memory: bool = False,
+        persistent_workers: bool = True,
         train_val_split: Tuple[float, float] = (0.875, 0.125),
     ) -> None:
         """
@@ -108,6 +110,7 @@ class OmniNeckDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
         self.dataset_path = dataset_path
 
         self.data_train: Optional[Dataset] = None
@@ -120,11 +123,16 @@ class OmniNeckDataModule(LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         if not self.data_train or not self.data_val or not self.data_test:
 
-            data_path = os.path.join(self.dataset_path, "train_data.npy")
+            data_path = os.path.join(self.dataset_path, "data.h5")
             if not os.path.exists(data_path):
                 raise ValueError("Data file does not exist.")
 
-            data = np.load(data_path)
+            with h5py.File(data_path, "r") as f:
+                pose = f["train/pose"][:]
+                force = f["train/force"][:]
+                surface_node = f["train/surface_node"][:, :, 1:]
+
+            data = np.concatenate([pose, force, surface_node.reshape(surface_node.shape[0], -1)], axis=1)
 
             dataset = OmniNeckDataset(data=data, transform=None)
 
@@ -136,15 +144,11 @@ class OmniNeckDataModule(LightningDataModule):
                 (train_length, val_length),
                 generator=torch.Generator().manual_seed(42),
             )
-            
-            data_mean_path = os.path.join(self.dataset_path, "data_mean.npy")
-            data_std_path = os.path.join(self.dataset_path, "data_std.npy")
 
-            if not os.path.exists(data_mean_path) or not os.path.exists(data_std_path):
-                raise ValueError("Mean and std files do not exist.")
-
-            self.data_mean = np.load(data_mean_path)
-            self.data_std = np.load(data_std_path)
+            # calculate mean and std from training data
+            all_train_data = torch.cat([self.data_train[i] for i in range(len(self.data_train))], dim=0)
+            self.data_mean = torch.mean(all_train_data, dim=0)
+            self.data_std = torch.std(all_train_data, dim=0)
 
     def train_dataloader(self):
         return DataLoader(
@@ -152,7 +156,7 @@ class OmniNeckDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=True,
+            persistent_workers=self.persistent_workers,
             shuffle=True,
             drop_last=True,
         )
@@ -163,7 +167,7 @@ class OmniNeckDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=True,
+            persistent_workers=self.persistent_workers,
             shuffle=False,
             drop_last=True,
         )
@@ -174,7 +178,7 @@ class OmniNeckDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=True,
+            persistent_workers=self.persistent_workers,
             shuffle=False,
             drop_last=True,
         )

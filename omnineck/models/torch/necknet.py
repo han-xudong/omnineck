@@ -30,12 +30,12 @@ class NeckNet(LightningModule):
 
     def __init__(
         self,
-        x_dim: Tuple[int, ...],
-        y_dim: Tuple[int, ...],
-        h1_dim: Tuple[int, ...],
-        h2_dim: Tuple[int, ...],
-        mean: np.ndarray = None,
-        std: np.ndarray = None,
+        x_dim: list,
+        y_dim: list,
+        hidden_dim: list,
+        mean: list = None,
+        std: list = None,
+        zero_loss_weight: float = 1.0,
         lr: float = 1e-4,
         **kwargs,
     ) -> None:
@@ -57,8 +57,14 @@ class NeckNet(LightningModule):
         self.lr = lr
         self.x_dim = x_dim
         self.y_dim = y_dim
-        self.h1_dim = h1_dim
-        self.h2_dim = h2_dim
+        self.hidden_dim = hidden_dim
+        self.zero_loss_weight = zero_loss_weight
+        
+        # Check dimensions
+        assert len(self.x_dim) == 1, "Only one input dimension is supported."
+        assert len(self.y_dim) == len(self.hidden_dim), "Output and hidden dimensions must match."
+        assert len(mean) == sum(self.x_dim) + sum(self.y_dim), "Mean dimension mismatch."
+        assert len(std) == sum(self.x_dim) + sum(self.y_dim), "Std dimension mismatch."
 
         self.x_mean = []
         self.x_std = []
@@ -91,6 +97,7 @@ class NeckNet(LightningModule):
                 for i in range(len(self.x_dim))
             ]
         )
+        
         self.y_normalizers = nn.ModuleList(
             [
                 Normalizer(
@@ -100,18 +107,22 @@ class NeckNet(LightningModule):
                 for i in range(len(self.y_dim))
             ]
         )
-        self.estimators = nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.Linear(self.x_dim[0], self.h1_dim[i]),
-                    nn.ReLU(),
-                    nn.Linear(self.h1_dim[i], self.h2_dim[i]),
-                    nn.ReLU(),
-                    nn.Linear(self.h2_dim[i], self.y_dim[i]),
-                )
-                for i in range(len(self.y_dim))
-            ]
-        )
+        
+        self.estimators = nn.ModuleList()
+        for i in range(len(self.y_dim)):
+            layers = []
+            in_dim = self.x_dim[0]
+
+            for j in range(len(self.hidden_dim[i])):
+                out_dim = self.hidden_dim[i][j]
+                layers.append(nn.Linear(in_dim, out_dim))
+                layers.append(nn.ReLU())
+                in_dim = out_dim
+
+            layers.append(nn.Linear(in_dim, self.y_dim[i]))
+
+            self.estimators.append(nn.Sequential(*layers))
+
 
     @staticmethod
     def pretrained_weights_available():
@@ -220,8 +231,11 @@ class NeckNet(LightningModule):
         # Define the logs
         logs = {}
 
-        # Calculate the reconstruction loss
+        # Define the loss
         loss_list = []
+        zero_loss_list = []
+        
+        # Calculate the prediction loss
         for i in range(len(self.y_dim)):
             y_i = data_list[i + 1]
             y_i_norm = self.y_normalizers[i].normalize(y_i)
@@ -230,9 +244,19 @@ class NeckNet(LightningModule):
             loss = F.mse_loss(y_hat_i_norm, y_i_norm)
             loss_list.append(loss)
             logs[f"loss_{i}"] = loss
+        
+        # Calculate the zero loss
+        for i in range(len(self.y_dim)):
+            y_i_zero = torch.zeros_like(data_list[i + 1])
+            y_i_zero_norm = self.y_normalizers[i].normalize(y_i_zero)
+            x_zero_norm = self.x_normalizers[0].normalize(torch.zeros_like(data_list[0]))
+            y_hat_i_zero_norm = self.estimators[i](x_zero_norm)
+            zero_loss = F.mse_loss(y_hat_i_zero_norm, y_i_zero_norm)
+            zero_loss_list.append(zero_loss)
+            logs[f"zero_loss_{i}"] = zero_loss
 
         # Calculate the total loss
-        loss = sum(loss_list)
+        loss = sum(loss_list) + self.zero_loss_weight * sum(zero_loss_list)
 
         logs["loss"] = loss
         loss = Tensor(loss)

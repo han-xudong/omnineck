@@ -11,23 +11,23 @@ python scripts/train.py
 
 Various configuration options are available:
 
-╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-| Options               | Description                                       | Type   | Default               |
-|-----------------------|---------------------------------------------------|--------|-----------------------|
-| --batch-size          | Batch size for training.                          | int    | 128                   |
-| --lr                  | Learning rate for the optimizer.                  | float  | 1e-5                  |
-| --max-epochs          | Maximum number of training epochs.                | int    | 2000                  |
-| --save-dir            | Directory to save training logs and checkpoints.  | str    | lightning_logs        |
-|--data.dataset-path    | Path to the dataset directory.                    | str    | ./data/omnineck/sim   |
-|--data.num-workers     | Number of workers for data loading.               | int    | 4                     |
-|--data.pin-memory      | Whether to pin memory during data loading.        | bool   | False                 |
-|--data.train-val-split | Train-validation split ratios.                    | tuple  | 0.875 0.125           |
-|--model.name           | Model name                                        | str    | NeckNet               |
-|--model.x-dim          | Input dimension                                   | tuple  | 6                     |
-|--model.y-dim          | Output dimension                                  | tuple  | 6 2862                |
-|--model.h1-dim         | Hidden layer 1 dimension                          | tuple  | 128 1024              |
-|--model.h2-dim         | Hidden layer 2 dimension                          | tuple  | 128 1024              |
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+| Options               | Description                                           | Type   | Default                      |
+|-----------------------|-------------------------------------------------------|--------|------------------------------|
+| --batch-size          | Batch size for training.                              | int    | 128                          |
+| --lr                  | Learning rate for the optimizer.                      | float  | 1e-5                         |
+| --max-epochs          | Maximum number of training epochs.                    | int    | 2000                         |
+| --save-dir            | Directory to save training logs and checkpoints.      | str    | lightning_logs               |
+| --zero-loss-weight    | Weight for the zero loss component.                   | float  | 0.5                          |
+| --data.dataset-path   | Path to the dataset directory.                        | str    | ./data/omnineck/sim          |
+| --data.num-workers    | Number of workers for data loading.                   | int    | 4                            |
+| --data.pin-memory     | Whether to pin memory during data loading.            | bool   | False                        |
+| --data.train-val-split| Train-validation split ratios.                        | tuple  | 0.875 0.125                  |
+| --model.name          | Model name.                                           | str    | NeckNet                      |
+| --model.x-dim         | Input dimension.                                      | tuple  | 6                            |
+| --model.y-dim         | Output dimension.                                     | tuple  | 6 2862                       |
+| --model.hidden-dim    | Hidden layer dimensions for each part of the model.   | tuple  | 512 512 512 1024 1024 1024   |
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 """
 
 import os
@@ -86,12 +86,12 @@ def main(cfg: TrainConfig) -> None:
     )
 
     model = NeckNet(
-        x_dim=cfg.model.x_dim,
-        y_dim=cfg.model.y_dim,
-        h1_dim=cfg.model.h1_dim,
-        h2_dim=cfg.model.h2_dim,
-        mean=datamodule.data_mean,
-        std=datamodule.data_std,
+        x_dim=list(cfg.model.x_dim),
+        y_dim=list(cfg.model.y_dim),
+        hidden_dim=[list(h) for h in cfg.model.hidden_dim],
+        mean=datamodule.data_mean.tolist(),
+        std=datamodule.data_std.tolist(),
+        zero_loss_weight=cfg.zero_loss_weight,
         lr=cfg.lr,
     )
 
