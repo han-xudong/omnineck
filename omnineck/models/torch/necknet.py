@@ -45,8 +45,11 @@ class NeckNet(LightningModule):
         Args:
             x_dim: dimension of the input data
             y_dim: dimension of the output data
-            h1_dim: dimension of the hidden layer 1
-            h2_dim: dimension of the hidden layer 2
+            hidden_dim: dimension of the hidden layers
+            mean: mean of the data for normalization
+            std: standard deviation of the data for normalization
+            zero_loss_weight: weight for the zero loss component
+            lr: learning rate for the optimizer
         """
 
         # Call the super constructor
@@ -361,12 +364,3 @@ class NeckNet(LightningModule):
         # Save the traced script module
         traced.save(path)
         print(f"Saved model to: {path}")
-
-
-if __name__ == "__main__":
-    # Create the model
-    model = NeckNet(x_dim=[6], y_dim=[6, 1800], h1_dim=[100, 1000], h2_dim=[100, 1000], lr=1e-4)
-    # Print the model
-    print(model)
-    # Print the hyperparameters
-    print(model.hparams)

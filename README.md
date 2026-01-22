@@ -47,21 +47,22 @@ uv run python scripts/train.py [options]
 
 There are several configurable options for training:
 
-| Options               | Description                                           | Type   | Default                      |
-|-----------------------|-------------------------------------------------------|--------|------------------------------|
-| --batch-size          | Batch size for training.                              | int    | 128                          |
-| --lr                  | Learning rate for the optimizer.                      | float  | 1e-5                         |
-| --max-epochs          | Maximum number of training epochs.                    | int    | 2000                         |
-| --save-dir            | Directory to save training logs and checkpoints.      | str    | lightning_logs               |
-| --zero-loss-weight    | Weight for the zero loss component.                   | float  | 0.5                          |
-| --data.dataset-path   | Path to the dataset directory.                        | str    | ./data/omnineck/sim          |
-| --data.num-workers    | Number of workers for data loading.                   | int    | 4                            |
-| --data.pin-memory     | Whether to pin memory during data loading.            | bool   | False                        |
-| --data.train-val-split| Train-validation split ratios.                        | tuple  | 0.875 0.125                  |
-| --model.name          | Model name.                                           | str    | NeckNet                      |
-| --model.x-dim         | Input dimension.                                      | tuple  | 6                            |
-| --model.y-dim         | Output dimension.                                     | tuple  | 6 2862                       |
-| --model.hidden-dim    | Hidden layer dimensions for each part of the model.   | tuple  | 512 512 512 1024 1024 1024   |
+| Options                   | Description                                           | Type   | Default                      |
+|---------------------------|-------------------------------------------------------|--------|------------------------------|
+| --batch-size              | Batch size for training.                              | int    | 128                          |
+| --lr                      | Learning rate for the optimizer.                      | float  | 1e-5                         |
+| --max-epochs              | Maximum number of training epochs.                    | int    | 2000                         |
+| --save-dir                | Directory to save training logs and checkpoints.      | str    | lightning_logs               |
+| --zero-loss-weight        | Weight for the zero loss component.                   | float  | 0.5                          |
+| --data.dataset-path       | Path to the dataset directory.                        | str    | ./data/omnineck/sim          |
+| --data.num-workers        | Number of workers for data loading.                   | int    | 4                            |
+| --data.pin-memory         | Whether to pin memory during data loading.            | bool   | False                        |
+| --data.persistent-workers | Whether to use persistent workers for data loading.   | bool   | True                         |
+| --data.train-val-split    | Train-validation split ratios.                        | tuple  | 0.875 0.125                  |
+| --model.name              | Model name.                                           | str    | NeckNet                      |
+| --model.x-dim             | Input dimension.                                      | tuple  | 6                            |
+| --model.y-dim             | Output dimension.                                     | tuple  | 6 2862                       |
+| --model.hidden-dim        | Hidden layer dimensions for each part of the model.   | tuple  | 512 512 512 1024 1024 1024   |
 
 You can also follow the [training guide](./docs/training.ipynb) to test the model by calculating the R2 score, and RMSE, and visualizing the prediction results, etc.
 
