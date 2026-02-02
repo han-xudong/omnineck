@@ -39,7 +39,6 @@ def extract_config_from_ckpt(ckpt_path: str) -> dict:
         "model_type": "necknet",
         "framework": "pytorch",
         "library_name": "omnineck",
-
         "x_dim": hp["x_dim"],
         "y_dim": hp["y_dim"],
         "hidden_dim": hp["hidden_dim"],
@@ -69,7 +68,9 @@ def safetensors_export(ckpt_root: str) -> None:
     # ---------- export safetensors ----------
     state_dict = model.state_dict()
 
-    output_model_path = os.path.join(ckpt_root, "model.safetensors")
+    if not os.path.exists(os.path.join(ckpt_root, "safetensors")):
+        os.makedirs(os.path.join(ckpt_root, "safetensors"))
+    output_model_path = os.path.join(ckpt_root, "safetensors", "model.safetensors")
 
     metadata = {
         "format": "pt",
@@ -89,7 +90,7 @@ def safetensors_export(ckpt_root: str) -> None:
     # ---------- export config.json ----------
     config = extract_config_from_ckpt(ckpt_path)
 
-    output_config_path = os.path.join(ckpt_root, "config.json")
+    output_config_path = os.path.join(ckpt_root, "safetensors", "config.json")
     with open(output_config_path, "w") as f:
         json.dump(config, f, indent=2)
 
@@ -100,14 +101,13 @@ def safetensors_export(ckpt_root: str) -> None:
     print(f"Model size: {size_mb:.2f} MB")
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--ckpt_path",
         type=str,
-        default="lightning_logs/NeckNet/0121-2334",
         help="Path to the checkpoint folder.",
     )
     args = parser.parse_args()
+
     safetensors_export(args.ckpt_path)

@@ -29,15 +29,10 @@ def onnx_export(ckpt_dir: str) -> None:
         ckpt_dir (str): Path to the checkpoint folder.
     """
     
-    if not ckpt_dir.endswith("/"):
-        ckpt_dir += "/"
-    model_name = "_".join(os.path.join("", ckpt_dir).split("/")[1:-1])
-    print(f"Exporting {model_name} model to ONNX format")
-
     ckpt_path = os.path.join(ckpt_dir, "checkpoints", os.listdir(os.path.join(ckpt_dir, "checkpoints"))[0])
     # Load the model
     device = torch.device("cpu")
-    model = NeckNet.load_from_checkpoint(ckpt_path, weights_only=False).to(device)
+    model = NeckNet.load_from_checkpoint(ckpt_path).to(device)
     model.eval()
 
     # Get input dimension from the model
@@ -45,7 +40,9 @@ def onnx_export(ckpt_dir: str) -> None:
 
     # Export the model
     dummy_input = torch.randn(1, input_dim, dtype=torch.float32)
-    onnx_path = os.path.join(ckpt_dir, "model.onnx")
+    if not os.path.exists(os.path.join(ckpt_dir, "onnx")):
+        os.makedirs(os.path.join(ckpt_dir, "onnx"))
+    onnx_path = os.path.join(ckpt_dir, "onnx", "model.onnx")
 
     # Export with only one input
     torch.onnx.export(

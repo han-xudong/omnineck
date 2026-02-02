@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
 """
-Export HDF5 dataset to Parquet format (HuggingFace-compatible).
+Export HDF5 dataset to Parquet format.
 
 HDF5 structure assumed:
 
 root
 ├── train
-│   ├── pose           (N, 6)          float32
-│   ├── force          (N, 6)          float32
-│   ├── bound_node     (N, 190, 4)     float32
-│   └── surface_node   (N, 954, 4)     float32
+│   ├── pose           (N, 6)           float32
+│   ├── force          (N, 6)           float32
+│   ├── bound_node     (N, O, 4)        float32
+│   └── surface_node   (N, P, 4)        float32
 └── test
-    ├── pose
+    ├── poses
     ├── force
     ├── bound_node
     └── surface_node
@@ -51,9 +51,9 @@ def export_split(
         for start in range(0, num_samples, chunk_size):
             end = min(start + chunk_size, num_samples)
 
-            pose = pose_ds[start:end]  # (B, 6)
-            force = force_ds[start:end]  # (B, 6)
-            surface_node = surface_node_ds[start:end]  # (B, 954, 4)
+            pose = pose_ds[start:end]
+            force = force_ds[start:end]
+            surface_node = surface_node_ds[start:end]
 
             table = pa.table(
                 {
